@@ -1,4 +1,5 @@
 import msvcrt
+import winsound
 import json
 from Ajuda import lint, titulo
 
@@ -110,6 +111,8 @@ def loop_principal(mundo, nome_do_mundo):
 
     opcao = 0
 
+    explode_sound = False
+
     while opcao != 6:#loop do jogo
         
 
@@ -118,6 +121,9 @@ def loop_principal(mundo, nome_do_mundo):
 
         espaxada()
         mostrar_mundo(mundo, y_pos, x_pos)
+        if explode_sound:
+            winsound.PlaySound("sons\explosion.wav", winsound.SND_ASYNC)
+            explode_sound = False
 
 
         all_water = []
@@ -225,8 +231,41 @@ def loop_principal(mundo, nome_do_mundo):
         for tnt  in all_tnt:
             l, c, lvl  = tnt[0], tnt[1], tnt[2]
 
-            if lvl > 1:
+            if lvl > 2:
                 #Blocos pra destruir
+                explode_sound = True
+                
+                if l != 0:#Se l ou c for zero, para qua a TNT não destrua [-1] index
+                    try:
+                        mundo[l-1][c] = "air"
+                    except:
+                        True
+                    try:    
+                        mundo[l-1][c+1] = "air"
+                    except:
+                        True
+                    try:
+                        mundo[l-1][c-1] = "air"
+                    except:
+                        True
+                    try:
+                        mundo[l-2][c] = "air"
+                    except:
+                        True
+                if c != 0:
+                    try:
+                        mundo[l][c-1] = "air"
+                    except:
+                        True
+                    try:
+                        mundo[l+1][c-1] = "air"
+                    except:
+                        True    
+                    try:
+                        mundo[l][c-2] = "air"
+                    except:
+                        True
+                
                 try:
                     mundo[l][c] = "air"
                 except:
@@ -236,15 +275,7 @@ def loop_principal(mundo, nome_do_mundo):
                 except:
                     True
                 try:
-                    mundo[l-1][c] = "air"
-                except:
-                    True
-                try:
                     mundo[l][c+1] = "air"
-                except:
-                    True
-                try:
-                    mundo[l][c-1] = "air"
                 except:
                     True
                 try:
@@ -252,33 +283,14 @@ def loop_principal(mundo, nome_do_mundo):
                 except:
                     True
                 try:
-                    mundo[l+1][c-1] = "air"
-                except:
-                    True
-                try:    
-                    mundo[l-1][c+1] = "air"
-                except:
-                    True
-                try:
-                    mundo[l-1][c-1] = "air"
-                except:
-                    True
-                try:
                     mundo[l+2][c] = "air"
-                except:
-                    True
-                try:
-                    mundo[l-2][c] = "air"
                 except:
                     True
                 try:
                     mundo[l][c+2] = "air"
                 except:
                     True
-                try:
-                    mundo[l][c-2] = "air"
-                except:
-                    True
+
 
             else:
                 mundo[l][c] = "tnt"+str(lvl+1)
@@ -310,38 +322,58 @@ def loop_principal(mundo, nome_do_mundo):
         print(cor("(enter pra colocar bloco)"))
         opcao = msvcrt.getch()
 
-        if opcao == b"w":
+        if opcao == b"w":#Subir
+            winsound.PlaySound("sons\walk.wav", winsound.SND_ASYNC)
             y_pos -= 1
-        elif opcao == b"s":
+
+        elif opcao == b"s":#decer
+            winsound.PlaySound("sons\walk.wav", winsound.SND_ASYNC)
             y_pos += 1
-        elif opcao == b"a":
+
+        elif opcao == b"a":#esquerda
+            winsound.PlaySound("sons\walk.wav", winsound.SND_ASYNC)
             x_pos -= 1
-        elif opcao == b"d":
+
+        elif opcao == b"d":#direita
+            winsound.PlaySound("sons\walk.wav", winsound.SND_ASYNC)
             x_pos += 1
-        elif opcao == b"1":
+
+        elif opcao == b"1":#pedra
             block_select = 0
-        elif opcao == b"2":
+            winsound.PlaySound(f"sons\{block_id(block_select)}.wav", winsound.SND_ASYNC)
+
+        elif opcao == b"2":#grama
             block_select = 1
-        elif opcao == b"3":
+            winsound.PlaySound(f"sons\{block_id(block_select)}.wav", winsound.SND_ASYNC)
+
+        elif opcao == b"3":#água
             block_select = 2
-        elif opcao == b"4":
+            winsound.PlaySound(f"sons\{block_id(block_select)}.wav", winsound.SND_ASYNC)
+
+        elif opcao == b"4":#TNT
             block_select = 3  
-        elif opcao == b"5":
+            winsound.PlaySound(f"sons\{block_id(block_select)}.wav", winsound.SND_ASYNC)
+
+        elif opcao == b"5":#AR
             block_select = 4
-        elif opcao == b"6":
+            winsound.PlaySound(f"sons\{block_id(block_select)}.wav", winsound.SND_ASYNC)
+
+        elif opcao == b"6":#Sair e salvar
             break
-        elif opcao == b"\r":
+
+        elif opcao == b"\r":#colocar bloco
+            winsound.PlaySound(f"sons\{block_id(block_select)}.wav", winsound.SND_ASYNC)
             mundo[y_pos][x_pos] = block_id(block_select)
 
 
 
 
-
+    #Salvando o jogo
     dicionario_dos_mundos = {}
         
 
     try:
-        with open("saves.json", "r") as saves:#Pegando o dicionário
+        with open("saves.json", "r") as saves:#Alterando o dicionário
             dicionario_dos_mundos = saves
             dicionario_dos_mundos = json.load(dicionario_dos_mundos)
             dicionario_dos_mundos[nome_do_mundo] = mundo
