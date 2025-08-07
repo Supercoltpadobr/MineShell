@@ -36,8 +36,11 @@ def mostrar_mundo(MUNDO, posy=0, posx=0):
     for numeracao in range(2):
         print("    ", end="")
         for c in range(len(MUNDO[0])):
+
+            extra_size = 1 - (len(str(c))-1)#Para resolver o problema de mundos grandes
+
             if numeracao == 0:
-                print(c, end="  ")
+                print(c, end=" "+" "*extra_size)
             else:
                 print("v", end="  ")
         print()
@@ -45,7 +48,9 @@ def mostrar_mundo(MUNDO, posy=0, posx=0):
     print()
     #Blocos
     for l in MUNDO:
-        print(y,"> ", end="")
+        extra_size = 1-(len(str(y))-1)#Para resolver o problema de mundos grandes
+
+        print(str(y)+" "*extra_size+">", end=" ")
         x = 0
 
         for c in l:
@@ -66,12 +71,12 @@ def mostrar_mundo(MUNDO, posy=0, posx=0):
 
             elif "tnt" in c:
                 print(cor("T", 31), end="  ")
-            
+
             elif c == "water0":
-                print(cor("A", 34, 1), end="  ")
-            
+                print(cor(f"{c[-1]}", 34), end="  ")
+
             elif "water" in c:
-                print(cor("A", 34), end="  ")
+                print(cor(f"{c[-1]}", 34), end="  ")
 
             x += 1
             
@@ -82,9 +87,9 @@ def mostrar_mundo(MUNDO, posy=0, posx=0):
 
 def water_logic(block, level):
     #lógica da água
-    if block == "air":
+    if (block == "air") or level+1 < int(block[-1]):
         return "water" + str(level+1)
-    
+
     else:
         return block
 
@@ -252,6 +257,7 @@ def loop_principal(mundo, nome_do_mundo):
                         mundo[l-2][c] = "air"
                     except:
                         True
+
                 if c != 0:
                     try:
                         mundo[l][c-1] = "air"
