@@ -73,10 +73,10 @@ def mostrar_mundo(MUNDO, posy=0, posx=0):
                 print(cor("T", 31), end="  ")
 
             elif c == "water0":
-                print(cor(f"{c[-1]}", 34), end="  ")
+                print(cor("A", 34, 1), end="  ")
 
             elif "water" in c:
-                print(cor(f"{c[-1]}", 34), end="  ")
+                print(cor("A", 34), end="  ")
 
             x += 1
             
@@ -468,5 +468,6 @@ while True:
         espaxada()
 
     elif selecao == 2:#FIM )=
+
 
         break
