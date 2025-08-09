@@ -1,1 +1,2 @@
 Execute mine.py no VSC
+*wasd para se mecher e enter pra colocar bloco

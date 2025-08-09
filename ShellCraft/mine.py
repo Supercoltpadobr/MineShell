@@ -19,7 +19,9 @@ def criar_mundo(largura=10, altura=10):
     return MUNDO
 
 
-def cor(msg, cor=30, cor1=0):
+def cor(msg, cor=30, cor1=0, RGB=False, R=255, G=255, B=255):
+    if RGB:
+        return f"\x1b[38;2;{R};{G};{B}m{msg}\x1b[0m"
     
     return f"\033[{cor1};{cor}m{msg}\033[m"
 
@@ -64,7 +66,7 @@ def mostrar_mundo(MUNDO, posy=0, posx=0):
                 print(" ", end="  ", flush=True)
             
             elif c == "stone":
-                print(cor("P", 30), end="  ")
+                print(cor("P", RGB=True, R=125, G=125, B=125), end="  ")
             
             elif c == "grass":
                 print(cor("G", 32), end="  ")
@@ -200,24 +202,28 @@ def loop_principal(mundo, nome_do_mundo):
                 #Ações da água 
                 
                 try:#No bloco de baixo
-                    mundo[l+1][c] = water_logic(water_info[1], water_info[0])
+                    if water_logic(water_info[1], water_info[0]) != water_info[1]:
+                        mundo[l+1][c] = water_logic(water_info[1], water_info[0])
                 except:
                     True
 
                 try:#No bloco de cima
                     if l != 0:
-                        mundo[l-1][c] = water_logic(water_info[2], water_info[0])
+                        if water_logic(water_info[2], water_info[0]) != water_info[2]:
+                            mundo[l-1][c] = water_logic(water_info[2], water_info[0])
                 except:
                     True
 
                 try:#No bloco da direita    
-                    mundo[l][c+1] = water_logic(water_info[3], water_info[0])
+                    if water_logic(water_info[3], water_info[0]) != water_info[3]:
+                        mundo[l][c+1] = water_logic(water_info[3], water_info[0])
                 except:
                     True
                 
                 try:#No bloco da esquerda
                     if c != 0:
-                        mundo[l][c-1] = water_logic(water_info[4], water_info[0])
+                        if water_logic(water_info[4], water_info[0]) != water_info[4]:
+                            mundo[l][c-1] = water_logic(water_info[4], water_info[0])
                 except:
                     True
 
@@ -324,8 +330,8 @@ def loop_principal(mundo, nome_do_mundo):
         print(cor("[5] - AR", 37-(AR_select*5)), end=" | ") 
         print(cor("[6] - Sair e salvar", 31))
 
-        print(cor("*(wasd para se mecher)"), end="")
-        print(cor("(enter pra colocar bloco)"))
+        print(cor("*(wasd para se mecher)", RGB=True, R=170, G=170, B=170), end="")
+        print(cor("(enter pra colocar bloco)", RGB=True, R=170, G=170, B=170))
         opcao = msvcrt.getch()
 
         if opcao == b"w":#Subir
@@ -468,6 +474,5 @@ while True:
         espaxada()
 
     elif selecao == 2:#FIM )=
-
 
         break
