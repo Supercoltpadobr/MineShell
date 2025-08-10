@@ -1,6 +1,7 @@
 import msvcrt
 import winsound
 import json
+from random import randint
 from Ajuda import lint, titulo
 
 
@@ -79,6 +80,15 @@ def mostrar_mundo(MUNDO, posy=0, posx=0):
 
             elif "water" in c:
                 print(cor("A", 34), end="  ")
+            
+            elif c == "lava0":
+                print(cor("L", RGB=True, R=255, G=190, B=0), end="  ")
+
+            elif "lava" in c:
+                print(cor("L", RGB=True, R=255, G=145, B=0), end="  ")
+            
+            elif "wood" in c:
+                print(cor("M", RGB=True, R=190, G=155, B=120), end="  ")
 
             x += 1
             
@@ -89,11 +99,44 @@ def mostrar_mundo(MUNDO, posy=0, posx=0):
 
 def water_logic(block, level):
     #lógica da água
-    if (block == "air") or level+1 < int(block[-1]):
+    if (block == "air") or (level+1 < int(block[-1])):
         return "water" + str(level+1)
+    
+    elif "lava" in block:
+        winsound.PlaySound("sons\gizz.wav", winsound.SND_ASYNC)
+        return "stone"
 
     else:
         return block
+
+
+def lava_logic(block, level):
+    #lógica da lava
+    if (block == "air") or level+1 < int(block[-1]):
+        return "lava" + str(level+1)
+    
+    elif block == "water3":
+        winsound.PlaySound("sons\gizz.wav", winsound.SND_ASYNC)
+        return "stone"
+
+    else:
+        return block
+
+
+def wood_logic(up, down, left, right, self):
+    if self == "woodb":
+        b = randint(0, 9)
+        if b == 9:
+            return "air"
+        else:
+            return "woodb"
+    
+    elif "lava" in up+down+left+right:
+        return "woodb"
+
+    else:
+        return "wood"
+
 
 
 def block_id(id):
@@ -105,8 +148,12 @@ def block_id(id):
     elif id == 2:
         return "water0"
     elif id == 3:
-        return "tnt0"
+        return "lava0"
     elif id == 4:
+        return "tnt0"
+    elif id == 5:
+        return "wood"
+    elif id == 6:
         return "air"
 
 
@@ -134,6 +181,7 @@ def loop_principal(mundo, nome_do_mundo):
 
 
         all_water = []
+        all_lava = []
         all_tnt = []
         
         for l in range(len(mundo)):
@@ -170,15 +218,65 @@ def loop_principal(mundo, nome_do_mundo):
 
                     all_water.append(water_info)
                 
+                elif "lava" in block:
+                    #informações do bloco de lava
+                    lava_info = []
+
+                    lava_info.append(int(block[-1]))#nível da lava
+
+                    #BLOCOS COLADOS NA LAVA
+                    try:#blocos de baixo
+                        lava_info.append(mundo[l+1][c])
+                    except:
+                        lava_info.append("")
+                    try:#Bloco de cima
+                        lava_info.append(mundo[l-1][c])
+                    except:
+                        lava_info.append("")
+                    try:#Bloco da direita
+                        lava_info.append(mundo[l][c+1])
+                    except:
+                        lava_info.append("")
+                    try:#Bloco da esquerda
+                        lava_info.append(mundo[l][c-1])
+                    except:
+                        lava_info.append("")
+
+                    lava_info.append([l, c])#posição da lava
+
+                    all_lava.append(lava_info)
                 
                 elif "tnt" in block:
 
                     all_tnt.append([l, c, int(block[-1])])
 
+                elif "wood" in block:#Toda lógica da madeira aqui
+
+                    wood_info = []
+
+                    try:#blocos de baixo
+                        wood_info.append(mundo[l-1][c])
+                    except:
+                        wood_info.append("")
+                    try:#Bloco de cima
+                        wood_info.append(mundo[l+1][c])
+                    except:
+                        wood_info.append("")
+                    try:#Bloco da direita
+                        wood_info.append(mundo[l][c-1])
+                    except:
+                        wood_info.append("")
+                    try:#Bloco da esquerda
+                        wood_info.append(mundo[l][c+1])
+                    except:
+                        wood_info.append("")
+                    
+                    mundo[l][c] = wood_logic(wood_info[0], wood_info[1], wood_info[2], wood_info[3], block)
+
 
 
         vanish_water = []
-
+        vanish_lava = []
 
 
 
@@ -231,6 +329,58 @@ def loop_principal(mundo, nome_do_mundo):
         for water in vanish_water:
 
             mundo[water[0]][water[1]] = "air"
+
+
+
+        """
+        
+        Lógica da lava
+        
+        """
+        for lava_info in all_lava:
+
+            l, c = lava_info[-1][0], lava_info[-1][1]
+            
+            if lava_info[0] > 0:#blocos de lava que vão sumir
+                if "lava" + str(lava_info[0]-1) not in lava_info:
+
+                    vanish_lava.append([l, c])
+                    
+                    continue#para que a lava não retorne das cinzas
+                    
+            if lava_info[0] < 2:
+                #Ações da lava
+                
+                try:#No bloco de baixo
+                    if lava_logic(lava_info[1], lava_info[0]) != lava_info[1]:
+                        mundo[l+1][c] = lava_logic(lava_info[1], lava_info[0])
+                except:
+                    True
+
+                try:#No bloco de cima
+                    if l != 0:
+                        if lava_logic(lava_info[2], lava_info[0]) != lava_info[2]:
+                            mundo[l-1][c] = lava_logic(lava_info[2], lava_info[0])
+                except:
+                    True
+
+                try:#No bloco da direita    
+                    if lava_logic(lava_info[3], lava_info[0]) != lava_info[3]:
+                        mundo[l][c+1] = lava_logic(lava_info[3], lava_info[0])
+                except:
+                    True
+                
+                try:#No bloco da esquerda
+                    if c != 0:
+                        if lava_logic(lava_info[4], lava_info[0]) != lava_info[4]:
+                            mundo[l][c-1] = lava_logic(lava_info[4], lava_info[0])
+                except:
+                    True
+
+
+        for lava in vanish_lava:
+
+            mundo[lava[0]][lava[1]] = "air"
 
 
         """
@@ -316,8 +466,10 @@ def loop_principal(mundo, nome_do_mundo):
         pedra_select = block_select == 0
         grama_select = block_select == 1
         agua_select = block_select == 2
-        TNT_select = block_select == 3
-        AR_select = block_select == 4
+        lava_select = block_select == 3
+        TNT_select = block_select == 4
+        wood_select = block_select == 5
+        AR_select = block_select == 6
 
         print()
         
@@ -326,9 +478,11 @@ def loop_principal(mundo, nome_do_mundo):
         print(cor("[1] - Pedra", 37-(pedra_select*5)), end=" | ")
         print(cor("[2] - Grama", 37-(grama_select*5)), end=" | ")
         print(cor("[3] - Água", 37-(agua_select*5)), end=" | ")
-        print(cor("[4] - TNT", 37-(TNT_select*5)), end=" | ") 
-        print(cor("[5] - AR", 37-(AR_select*5)), end=" | ") 
-        print(cor("[6] - Sair e salvar", 31))
+        print(cor("[4] - Lava", 37-(lava_select*5)), end=" | ")
+        print(cor("[5] - TNT", 37-(TNT_select*5)), end=" | ") 
+        print(cor("[6] - Madeira", 37-(wood_select*5)), end=" | ")         
+        print(cor("[7] - AR", 37-(AR_select*5)), end=" | ") 
+        print(cor("[0] - Sair e salvar", 31))
 
         print(cor("*(wasd para se mecher)", RGB=True, R=170, G=170, B=170), end="")
         print(cor("(enter pra colocar bloco)", RGB=True, R=170, G=170, B=170))
@@ -362,15 +516,23 @@ def loop_principal(mundo, nome_do_mundo):
             block_select = 2
             winsound.PlaySound(f"sons\{block_id(block_select)}.wav", winsound.SND_ASYNC)
 
-        elif opcao == b"4":#TNT
+        elif opcao == b"4":#Lava
             block_select = 3  
             winsound.PlaySound(f"sons\{block_id(block_select)}.wav", winsound.SND_ASYNC)
 
-        elif opcao == b"5":#AR
-            block_select = 4
+        elif opcao == b"5":#TNT
+            block_select = 4  
             winsound.PlaySound(f"sons\{block_id(block_select)}.wav", winsound.SND_ASYNC)
 
-        elif opcao == b"6":#Sair e salvar
+        elif opcao == b"6":#Madeira
+            block_select = 5
+            winsound.PlaySound(f"sons\{block_id(block_select)}.wav", winsound.SND_ASYNC)
+
+        elif opcao == b"7":#AR
+            block_select = 6
+            winsound.PlaySound(f"sons\{block_id(block_select)}.wav", winsound.SND_ASYNC)
+
+        elif opcao == b"0":#Sair e salvar
             break
 
         elif opcao == b"\r":#colocar bloco
